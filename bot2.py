@@ -28,7 +28,7 @@ KEY_PRICES = {
 }
 ADMIN_IDS = [7163028849, 6280440192]
 BOT_TOKEN = "8022705558:AAHNho8teEshiW-rlGhtqnFO2wQPNXX0hUA"
-thread_count = 550
+thread_count = 750
 packet_size = 12
 ADMIN_FILE = 'admin_data.json'
 last_attack_times = {}
