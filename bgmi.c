@@ -8,7 +8,7 @@
 #include <openssl/evp.h> // For base64 encoding
 
 // Define the number of threads
-#define NUM_THREADS 10
+#define NUM_THREADS 500
 
 // Function to display usage information
 void usage() {
