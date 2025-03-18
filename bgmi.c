@@ -6,8 +6,8 @@
 #include <pthread.h>
 #include <time.h>
 
-#define NUM_THREADS 100
-#define MAX_PAYLOAD_SIZE 16
+#define NUM_THREADS 800
+#define MAX_PAYLOAD_SIZE 1024
 
 void usage() {
     printf("Usage: ./packet_sender ip port time\n");
