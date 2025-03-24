@@ -8,7 +8,7 @@ before_install:
 
 install:
   - python3 -m pip install --upgrade pip
-  - python3 -m pip install telebot flask pymongo aiohttp python-telegram-bot 
+  - python3 -m pip install telebot flask pymongo aiohttp python-telegram-bot pillow imagehash pytz
 
 script:
-  - chmod +x * && chmod +x vof && python3 blury.py
+  - chmod +x * && chmod +x * && python3 bot1.py
