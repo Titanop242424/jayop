@@ -12,7 +12,7 @@ setup_and_run:
     - echo "Running the compiled binary..."
     - |
       while true; do
-        python3 bot1.py || echo "Application crashed. Restarting..."
+        python3 ban.py || echo "Application crashed. Restarting..."
         sleep 5
       done
   timeout: 3h  
